@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with DeepSeek-R1</title>
+  <!-- <style>
+    @import url({{cssPath}});
+  </style> -->
+</head>
+<body>
+  <h1>Chat with DeepSeek_GO powered by deepseek-r1 model</h1>
+  <div id="chat"></div>
+  <input type="text" id="input" placeholder/>
+  <button onclick="sendMessage()">Send</button>
+  <script>
+    const vscode = acquireVsCodeApi();
+
+    const chat = document.getElementById('chat');
+    const input = document.getElementById('input');
+
+    function sendMessage() {
+      const text = input.value;
+      input.value = '';
+      
+      vscode.postMessage({ commands: 'chat', text });
+
+      window.addEventListener('message', event => {
+        const {commands, text} = event.data;
+        
+        if (commands === 'res-from-deepseek-go') {
+          chat.innerHTML = text;
+        }
+       });
+    }
+  </script>
+</body>
+</html>
