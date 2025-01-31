@@ -1,3 +1,13 @@
+*{
+  padding: 0;
+  margin: 0;
+
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   font-family: 'Söhne', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
@@ -6,6 +16,8 @@ body {
   height: 100vh;
   background-color: #343541;
   color: #ececf1;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
 }
 #chat-container {
   display: flex;
@@ -22,7 +34,10 @@ body {
   padding-right: 10px;
 }
 .bot-typing {
+  padding: 100px 30px;
+  line-height: 2rem;
   width: 100%;
+  height: auto;
 }
 
 .message {

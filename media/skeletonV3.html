@@ -19,7 +19,7 @@
         </div>
         <div id="user-input-container">
             <div id="user-input">
-                <textarea id="user-message" placeholder="Send a message..." rows="1"></textarea>
+                <textarea id="user-message" placeholder="Send a message..." rows="1" autofocus></textarea>
                 <button id="send-button" onclick="sendMessage()" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
@@ -40,64 +40,58 @@
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.querySelector('.typing-indicator');
 
-        function addMessage(content, isUser) {
-            const messageDiv = document.createElement('div');
+        function addMessage(content, isUser, messageDiv ) {
             messageDiv.className = `message ${isUser ? 'user-message' : 'model-message'}`;
             messageDiv.innerHTML = isUser ? content : marked.parse(content);
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            // chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function simulateTyping(message) {
-            return new Promise((resolve) => {
-                typingIndicator.style.display = 'block';
-                setTimeout(() => {
-                    typingIndicator.style.display = 'none';
-                    addMessage(message, false);
-                    resolve();
-                }, 1500 + Math.random() * 1500);
-            });
-        }
+        let previousEvent;
 
         async function sendMessage() {
             const userMessage = userMessageInput.value.trim();
             if (userMessage) {
-                addMessage(userMessage, true);
-                userMessageInput.value = '';
-                adjustTextareaHeight();
                 sendButton.disabled = true;
+                window.removeEventListener('message', previousEvent);
+
+                let userMessageDiv = document.createElement('div');
+                chatMessages.appendChild(userMessageDiv);
+
+                addMessage(userMessage, true, userMessageDiv);
+                userMessageInput.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                adjustTextareaHeight();
 
                 vscode.postMessage({ commands: 'chat', userMessage });
-
-                const Response = document.createElement('div');
-                Response.className = 'bot-typing';
-                chatMessages.appendChild(Response);
-
-                window.addEventListener('message', async event => {
+                
+                let ThinkingDiv = document.createElement('div');
+                let ResponseDiv = document.createElement('div');
+                chatMessages.appendChild(thinkingDiv);
+                chatMessages.appendChild(ResponseDiv);
+                
+                previousEvent = async event => {
                     const {commands, text} = event.data;
-                    
+
                     if (commands === 'res-from-deepseek-go') {
-                        Response.innerHTML = text;
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        const thinkMatch = text.match(/<think>(.*?)<\/think>/);
+                        const actualResponse = text.replace(/<think>.*?<\/think>/, '').trim();
+                        if (thinkMatch) {
+                            const thinkingText = thinkMatch[1].trim();
+                            addMessage(thinkingText, false, thinkingDiv); // Render thinking message
+                        }
+                        if (actualResponse) {
+                            addMessage(actualResponse, false, responseDiv); // Render actual response
+                        }
+                        // chatMessages.scrollTop = chatMessages.scrollHeight;
                         // await simulateTyping(text);
-                    }
-                });
+                    }   
+                }
 
+                window.addEventListener('message', previousEvent);
                 sendButton.disabled = false;
-
-                // Simulate model response (replace this with actual API call)
-                // const modelResponses = [
-                //     "Here's a markdown response:\n\n# Hello\n\nThis is a **bold** text and this is *italic*.\n\n- List item 1\n- List item 2\n\n```javascript\nconsole.log('Hello, world!');\n```",
-                //     "Sure, I can help with that. Here's an example of how to use a for loop in JavaScript:\n\n```javascript\nfor (let i = 0; i < 5; i++) {\n    console.log(`Iteration ${i}`);\n}\n```\n\nThis loop will run 5 times, printing the iteration number each time.",
-                //     "Here's a brief explanation of REST APIs:\n\n1. REST stands for Representational State Transfer\n2. It's an architectural style for designing networked applications\n3. RESTful APIs use HTTP requests to perform CRUD operations:\n   - CREATE: POST\n   - READ: GET\n   - UPDATE: PUT/PATCH\n   - DELETE: DELETE\n\nRESTful APIs are stateless, meaning each request contains all the information needed to complete it."
-                // ];
-
-                // const randomResponse = modelResponses[Math.floor(Math.random() * modelResponses.length)];
-                // await simulateTyping(randomResponse);
-                // sendButton.disabled = false;
+                }
             }
-        }
-
+            
 
         function adjustTextareaHeight() {
             userMessageInput.style.height = 'auto';
@@ -113,6 +107,12 @@
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'c') {
+                vscode.postMessage({ commands: 'abort' });
             }
         });
 

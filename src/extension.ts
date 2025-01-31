@@ -1,32 +1,42 @@
 import * as vscode from 'vscode';
-import ollama from 'ollama';
+import ollama, { Ollama } from 'ollama';
 import { WebView_v3 } from './skeleton/skeleton';
 import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
+	// const ollama = new Ollama({ host: 'http://127.0.0.1:11434' });
+	
 	const outputPanel = vscode.window.createOutputChannel('Deepseek-go output panel');
 	// outputPanel.appendLine('Congratulations, your extension "deepseek-go" is now active!');
 	// outputPanel.show();
-
+	
 	const disposable = vscode.commands.registerCommand('deepseek-go.deepseek_chatbot', () => {
-
+		
 		const panel = vscode.window.createWebviewPanel(
 			'deepseek-go-chatbot',
 			'chat with deepseek-r1 model',
 			vscode.ViewColumn.Two,
-			{enableScripts: true}
+			{
+				enableScripts: true,
+				retainContextWhenHidden: true // this will keep the state of the webview
+			}
 		);
-
+		
 		const cssPath = panel.webview.asWebviewUri(
 			vscode.Uri.joinPath(context.extensionUri, 'media', 'skeletonV3.style.css')
 		).toString();
-
 		panel.webview.html = WebView_v3(context, cssPath);
-
+		
+		let currentAbortController: boolean = false;
 		panel.webview.onDidReceiveMessage(async (message: any) =>{
 			if (message.commands === 'chat') {
 				const prompt = message.text;
 
+				if(currentAbortController){ 
+					ollama.abort();
+				}
+
+				currentAbortController = true;
 				// outputPanel.appendLine('prompt: ' + prompt);
 				let res = '';
 
@@ -37,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 							role: 'user',
 							content: prompt
 						}],
-						stream: true
+						stream: true,
 					});
 
 					
@@ -46,11 +56,18 @@ export function activate(context: vscode.ExtensionContext) {
 						panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: res });
 						// outputPanel.appendLine('stream> ' + res);
 					}
-
-				} catch (err) {
+				} catch (err: any) {
+					if (err.name === 'AbortError'){
+						console.log('Request was Aborted');
+					}
 					panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: 'Error: ' + String(err) });
+				} finally {
+					currentAbortController = false;
 				}
-			} 
+			}
+			else if (message.commands === 'abort'){
+				ollama.abort();
+			}
 		});
 
 	});
