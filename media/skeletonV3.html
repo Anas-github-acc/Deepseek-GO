@@ -8,6 +8,31 @@
     <style>
         @import url({{cssPath}});
     </style>
+    <script>
+        // Initialize MathJax configuration
+        window.MathJax = {
+                tex: {
+                    inlineMath: [['\\(', '\\)']],
+                    displayMath: [['\\[', '\\]']],
+                    packages: {'[+]': ['ams']},
+                    tags: 'all',
+                    processEscapes: true
+                },
+                options: {
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+                    ignoreHtmlClass: 'tex-ignore'
+                },
+                startup: {
+                    ready: () => {
+                        MathJax.startup.defaultReady();
+                        MathJax.startup.promise.then(() => {
+                            console.log('MathJax initialized');
+                        });
+                    }
+                }
+            };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <div id="chat-container">
@@ -40,11 +65,61 @@
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.querySelector('.typing-indicator');
 
+        
+        // const text = `Sure! Let's solve the simple arithmetic problem step by step:
+
+        // // \[
+        // // 2 + 2 = \boxed{4}
+        // // \]
+
+        // // **Step-by-Step Explanation:**
+
+        // // 1. **Identify the numbers to add:**  
+        // // We have two numbers, both of which are **2**.
+
+        // // 2. **Add the numbers together:**  
+        // // \[
+        // // 2 + 2 = 4
+        // // \]
+
+        // // 3. **Determine the result:**  
+        // // The sum is a single digit number (less than 10), so we don't need to consider any carry-over or further addition.
+
+        // // **Final Answer:**`
+
+        // if (window.MathJax) {
+        // //     // const content = document.createElement('div');
+        //     chatMessages.textContent = text;
+        // //     // chatMessages.appendChild(content);
+        //     window.MathJax.typesetPromise([chatMessages]).catch((err) => {
+        //         console.error('MathJax typeset error:', err);
+        //     });
+        // }
+
+
         function addMessage(content, messageDiv, messageClass=null) {
             if(messageClass){
                 messageDiv.className = `message ${messageClass}`;
             }
-            messageDiv.innerHTML = marked.parse(content);
+
+            // Preserve LaTeX formatting before markdown parsing
+            const preservedContent = content
+                .replace(/\\boxed{/g, 'ESCAPED_BOXED{')
+                .replace(/\\\[/g, 'ESCAPED_LBRACKET')
+                .replace(/\\\]/g, 'ESCAPED_RBRACKET');
+
+            // Convert to HTML with marked
+            messageDiv.innerHTML = marked.parse(preservedContent)
+                .replace(/ESCAPED_BOXED{/g, '\\boxed{')
+                .replace(/ESCAPED_LBRACKET/g, '\\[')
+                .replace(/ESCAPED_RBRACKET/g, '\\]');
+            
+            // messageDiv.innerHTML = marked.parse(content);
+            if (window.MathJax) {
+                window.MathJax.typesetPromise([messageDiv]).catch(err => 
+                    console.log('MathJax typesetting error!', err)
+                );
+            }
             // chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 

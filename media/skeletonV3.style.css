@@ -62,8 +62,9 @@ body {
   
 }
 .model-thinking {
+  padding: 2px;
   font-size: 0.8rem;
-  background: #3a3a4e;
+  background: #23232e;
 }
 #user-input-container {
   position: relative;

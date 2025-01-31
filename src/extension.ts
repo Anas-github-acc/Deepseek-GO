@@ -55,8 +55,8 @@ export function activate(context: vscode.ExtensionContext) {
 					
 					for await (const chunk of stream) {
 						if( chunk.message.content === "</think>"){
-							res = '';
 							outputPanel.appendLine('thinking > ' + res);
+							res = '';
 							continue;
 						}
 						res += chunk.message.content;
