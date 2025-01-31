@@ -1,71 +1,62 @@
-# deepseek-go README
+# deepseek-go
 
-This is the README for your extension "deepseek-go". After writing up a brief description, we recommend including the following sections.
+deepseek-go is a Visual Studio Code extension that brings an AI-powered chatbot directly into your development environment. Powered by DeepSeek's deep reasoning model (R1) and with plans to integrate a fast, non-reasoning model in future updates, this extension is designed to help you quickly access insights, code suggestions, and general assistance without ever leaving VS Code.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Integrated Chatbot**: Engage with a chatbot right in your editor for coding help, debugging tips, and more.
+- **Deep Reasoning Model (R1)**: Currently powered by DeepSeek's advanced deep reasoning model to provide context-aware and thoughtful responses.
+- **Planned High-Performance Mode**: Future updates will introduce a non-reasoning model option for faster performance.
+- **Seamless VS Code Experience**: Designed to work natively within VS Code, allowing you to remain focused on your code.
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+![Chatbot Demo](images/chatbot-demo.png)
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- **Visual Studio Code**: Version 1.50.0 or later is recommended.
+- **Internet Connection**: Required for accessing the DeepSeek models.
+- **No Additional Dependencies**: All necessary functionality is included within the extension.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+This extension contributes the following settings which can be customized in your VS Code settings:
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- **`deepseek-go.enable`**: Enable or disable the deepseek-go extension.
+- **`deepseek-go.model`**: Choose the model to use (default is `"R1"`). Future releases may include options like `"fast"` for the non-reasoning model.
+- **`deepseek-go.apiKey`**: (Optional) Provide your API key if additional authentication is needed to access enhanced model capabilities.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- **Model Limitation**: Currently, only the deep reasoning model (R1) is supported. Expect updates to include a high-performance non-reasoning model.
+- **Performance Latency**: Some complex queries may experience slight delays.
+- **Context Sensitivity**: Chatbot responses are generated based on the available training data and might sometimes miss nuanced context.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
+- **Initial Release**: Introduced deepseek-go with integration of the DeepSeek deep reasoning model (R1) for comprehensive chatbot functionality.
+- **Basic VS Code Integration**: Seamlessly integrated into the VS Code environment to assist with coding and debugging.
 
-Initial release of ...
+### 1.1.0 (Upcoming)
+- **New Model Integration**: Introduction of a non-reasoning model for improved performance.
+- **Performance Optimizations**: General bug fixes and improvements based on user feedback.
 
-### 1.0.1
+## Extension Guidelines
 
-Fixed issue #.
+Before using deepseek-go, ensure you have updated to the latest version of Visual Studio Code and maintain a stable internet connection to fully leverage its capabilities. For any issues or feature requests, please check our [issue tracker](https://github.com/yourusername/deepseek-go/issues) or contribute directly.
 
-### 1.1.0
+## Working with Markdown in VS Code
 
-Added features X, Y, and Z.
+You can easily edit and preview Markdown files in VS Code. Here are some useful shortcuts:
+
+- **Split Editor**: Press `Cmd+\` (macOS) or `Ctrl+\` (Windows/Linux).
+- **Toggle Preview**: Press `Shift+Cmd+V` (macOS) or `Shift+Ctrl+V` (Windows/Linux).
+- **Markdown IntelliSense**: Press `Ctrl+Space` to view available Markdown snippets.
+
+For more information:
+- [Visual Studio Code's Markdown Support](https://code.visualstudio.com/docs/languages/markdown)
+- [Markdown Syntax Reference](https://www.markdownguide.org/basic-syntax/)
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Enjoy using deepseek-go, and feel free to contribute to its ongoing development!
