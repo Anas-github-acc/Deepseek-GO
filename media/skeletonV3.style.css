@@ -16,8 +16,9 @@ body {
   height: 100vh;
   background-color: #343541;
   color: #ececf1;
-  scrollbar-width: none;
   scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 #chat-container {
   display: flex;
@@ -56,6 +57,13 @@ body {
 }
 .model-message {
   background-color: #3f3f4f;
+}
+.model-response{
+  
+}
+.model-thinking {
+  font-size: 0.8rem;
+  background: #3a3a4e;
 }
 #user-input-container {
   position: relative;

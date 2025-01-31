@@ -40,9 +40,11 @@
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.querySelector('.typing-indicator');
 
-        function addMessage(content, isUser, messageDiv ) {
-            messageDiv.className = `message ${isUser ? 'user-message' : 'model-message'}`;
-            messageDiv.innerHTML = isUser ? content : marked.parse(content);
+        function addMessage(content, messageDiv, messageClass=null) {
+            if(messageClass){
+                messageDiv.className = `message ${messageClass}`;
+            }
+            messageDiv.innerHTML = marked.parse(content);
             // chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
@@ -56,31 +58,34 @@
 
                 let userMessageDiv = document.createElement('div');
                 chatMessages.appendChild(userMessageDiv);
-
-                addMessage(userMessage, true, userMessageDiv);
+                addMessage(userMessage, userMessageDiv, 'user-message');
                 userMessageInput.value = '';
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 adjustTextareaHeight();
 
-                vscode.postMessage({ commands: 'chat', userMessage });
+                vscode.postMessage({ commands: 'chat', text: userMessage });
                 
-                let ThinkingDiv = document.createElement('div');
-                let ResponseDiv = document.createElement('div');
-                chatMessages.appendChild(thinkingDiv);
-                chatMessages.appendChild(ResponseDiv);
+                let messageDiv = document.createElement('div');
+                let thinkingDiv = document.createElement('div');
+                let responseDiv = document.createElement('div');
+                messageDiv.className = 'message model-message';
+                thinkingDiv.className = 'model-thinking';
+                responseDiv.className = 'model-response';
+                chatMessages.appendChild(messageDiv);
+                messageDiv.appendChild(thinkingDiv);
+                messageDiv.appendChild(responseDiv);
                 
                 previousEvent = async event => {
                     const {commands, text} = event.data;
 
                     if (commands === 'res-from-deepseek-go') {
-                        const thinkMatch = text.match(/<think>(.*?)<\/think>/);
-                        const actualResponse = text.replace(/<think>.*?<\/think>/, '').trim();
+                        const thinkMatch = text.toString().match(/<think>([\s\S]*)/s) || null;
+                        
                         if (thinkMatch) {
-                            const thinkingText = thinkMatch[1].trim();
-                            addMessage(thinkingText, false, thinkingDiv); // Render thinking message
+                            addMessage(thinkMatch[1].trim(), thinkingDiv); // Render thinking message
                         }
-                        if (actualResponse) {
-                            addMessage(actualResponse, false, responseDiv); // Render actual response
+                        else {
+                            addMessage(text, responseDiv); // Render actual response
                         }
                         // chatMessages.scrollTop = chatMessages.scrollHeight;
                         // await simulateTyping(text);
@@ -90,7 +95,7 @@
                 window.addEventListener('message', previousEvent);
                 sendButton.disabled = false;
                 }
-            }
+            }  
             
 
         function adjustTextareaHeight() {

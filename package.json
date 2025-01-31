@@ -15,7 +15,7 @@
     "commands": [
       {
         "command": "deepseek-go.deepseek_chatbot",
-        "title": "chat with deepseek"
+        "title": "chat with deepseek-go"
       }
     ]
   },

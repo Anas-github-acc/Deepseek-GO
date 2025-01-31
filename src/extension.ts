@@ -7,8 +7,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// const ollama = new Ollama({ host: 'http://127.0.0.1:11434' });
 	
 	const outputPanel = vscode.window.createOutputChannel('Deepseek-go output panel');
-	// outputPanel.appendLine('Congratulations, your extension "deepseek-go" is now active!');
-	// outputPanel.show();
+	outputPanel.appendLine('Congratulations, your extension "deepseek-go" is now active!');
+	outputPanel.show();
 	
 	const disposable = vscode.commands.registerCommand('deepseek-go.deepseek_chatbot', () => {
 		
@@ -31,13 +31,15 @@ export function activate(context: vscode.ExtensionContext) {
 		panel.webview.onDidReceiveMessage(async (message: any) =>{
 			if (message.commands === 'chat') {
 				const prompt = message.text;
+				
 
 				if(currentAbortController){ 
 					ollama.abort();
 				}
 
 				currentAbortController = true;
-				// outputPanel.appendLine('prompt: ' + prompt);
+				// outputPanel.appendLine('prompt: ' + message);
+				outputPanel.appendLine('prompt: ' + prompt);
 				let res = '';
 
 				try {
@@ -52,15 +54,20 @@ export function activate(context: vscode.ExtensionContext) {
 
 					
 					for await (const chunk of stream) {
+						if( chunk.message.content === "</think>"){
+							res = '';
+							outputPanel.appendLine('thinking > ' + res);
+							continue;
+						}
 						res += chunk.message.content;
 						panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: res });
-						// outputPanel.appendLine('stream> ' + res);
 					}
+					outputPanel.appendLine('stream > ' + res);
 				} catch (err: any) {
 					if (err.name === 'AbortError'){
 						console.log('Request was Aborted');
 					}
-					panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: 'Error: ' + String(err) });
+					panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: res + '\nError: ' + String(err) });
 				} finally {
 					currentAbortController = false;
 				}
