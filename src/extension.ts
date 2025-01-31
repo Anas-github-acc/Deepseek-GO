@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 import ollama, { Ollama } from 'ollama';
-import { WebView_v3 } from './skeleton/skeleton';
+import { WebView_v3, WebView_v4 } from './skeleton/skeleton';
 import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
 	// const ollama = new Ollama({ host: 'http://127.0.0.1:11434' });
 	
 	const outputPanel = vscode.window.createOutputChannel('Deepseek-go output panel');
-	outputPanel.appendLine('Congratulations, your extension "deepseek-go" is now active!');
-	outputPanel.show();
+	// outputPanel.appendLine('Congratulations, your extension "deepseek-go" is now active!');
+	// outputPanel.show();
 	
 	const disposable = vscode.commands.registerCommand('deepseek-go.deepseek_chatbot', () => {
 		
@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				currentAbortController = true;
 				// outputPanel.appendLine('prompt: ' + message);
-				outputPanel.appendLine('prompt: ' + prompt);
+				// outputPanel.appendLine('prompt: ' + prompt);
 				let res = '';
 
 				try {
@@ -51,23 +51,24 @@ export function activate(context: vscode.ExtensionContext) {
 						}],
 						stream: true,
 					});
+					panel.webview.postMessage({ commands: 'typing', text: '' });
 
 					
 					for await (const chunk of stream) {
 						if( chunk.message.content === "</think>"){
-							outputPanel.appendLine('thinking > ' + res);
+							// outputPanel.appendLine('thinking > ' + res);
 							res = '';
 							continue;
 						}
 						res += chunk.message.content;
 						panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: res });
 					}
-					outputPanel.appendLine('stream > ' + res);
+					// outputPanel.appendLine('stream > ' + res);
 				} catch (err: any) {
 					if (err.name === 'AbortError'){
 						console.log('Request was Aborted');
 					}
-					panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: res + '\nError: ' + String(err) });
+					panel.webview.postMessage({ commands: 'res-from-deepseek-go', text: res + "\n<span class='error'>Error: " + String(err) + "</span>"});
 				} finally {
 					currentAbortController = false;
 				}

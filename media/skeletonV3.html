@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Söhne:wght@400;700&display=swap" rel="stylesheet">
     <style>
         @import url({{cssPath}});
+        @import url('skeletonV3.style.css')
     </style>
     <script>
         // Initialize MathJax configuration
@@ -36,15 +37,15 @@
 </head>
 <body>
     <div id="chat-container">
-        <div id="chat-messages"></div>
-        <div class="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
+        <div id="chat-messages">
+            <div class="chat-header">
+                <h1>Chat with DeepSeek-R1</h1>
+
+            </div>
         </div>
         <div id="user-input-container">
             <div id="user-input">
-                <textarea id="user-message" placeholder="Send a message..." rows="1" autofocus></textarea>
+                <textarea id="user-message" placeholder="Send a message..." rows="1"></textarea>
                 <button id="send-button" onclick="sendMessage()" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
@@ -65,38 +66,6 @@
         const sendButton = document.getElementById('send-button');
         const typingIndicator = document.querySelector('.typing-indicator');
 
-        
-        // const text = `Sure! Let's solve the simple arithmetic problem step by step:
-
-        // // \[
-        // // 2 + 2 = \boxed{4}
-        // // \]
-
-        // // **Step-by-Step Explanation:**
-
-        // // 1. **Identify the numbers to add:**  
-        // // We have two numbers, both of which are **2**.
-
-        // // 2. **Add the numbers together:**  
-        // // \[
-        // // 2 + 2 = 4
-        // // \]
-
-        // // 3. **Determine the result:**  
-        // // The sum is a single digit number (less than 10), so we don't need to consider any carry-over or further addition.
-
-        // // **Final Answer:**`
-
-        // if (window.MathJax) {
-        // //     // const content = document.createElement('div');
-        //     chatMessages.textContent = text;
-        // //     // chatMessages.appendChild(content);
-        //     window.MathJax.typesetPromise([chatMessages]).catch((err) => {
-        //         console.error('MathJax typeset error:', err);
-        //     });
-        // }
-
-
         function addMessage(content, messageDiv, messageClass=null) {
             if(messageClass){
                 messageDiv.className = `message ${messageClass}`;
@@ -106,26 +75,33 @@
             const preservedContent = content
                 .replace(/\\boxed{/g, 'ESCAPED_BOXED{')
                 .replace(/\\\[/g, 'ESCAPED_LBRACKET')
-                .replace(/\\\]/g, 'ESCAPED_RBRACKET');
+                .replace(/\\\]/g, 'ESCAPED_RBRACKET')
+                .replace(/\\sum/g, 'ESCAPED_SUM')
+                .replace(/\\log/g, 'ESCAPED_LOG')
+                .replace(/\\infty/g, 'ESCAPED_INFTY');
 
             // Convert to HTML with marked
             messageDiv.innerHTML = marked.parse(preservedContent)
                 .replace(/ESCAPED_BOXED{/g, '\\boxed{')
                 .replace(/ESCAPED_LBRACKET/g, '\\[')
-                .replace(/ESCAPED_RBRACKET/g, '\\]');
-            
-            // messageDiv.innerHTML = marked.parse(content);
+                .replace(/ESCAPED_RBRACKET/g, '\\]')
+                .replace(/ESCAPED_SUM/g, '\\sum')
+                .replace(/ESCAPED_LOG/g, '\\log')
+                .replace(/ESCAPED_INFTY/g, '\\infty');
+
             if (window.MathJax) {
-                window.MathJax.typesetPromise([messageDiv]).catch(err => 
+                window.MathJax.typesetPromise([messageDiv])
+                .catch(err => 
                     console.log('MathJax typesetting error!', err)
                 );
             }
-            // chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         let previousEvent;
+        let autoScrollEnabled;
 
         async function sendMessage() {
+            autoScrollEnabled = true;
             const userMessage = userMessageInput.value.trim();
             if (userMessage) {
                 sendButton.disabled = true;
@@ -135,6 +111,8 @@
                 chatMessages.appendChild(userMessageDiv);
                 addMessage(userMessage, userMessageDiv, 'user-message');
                 userMessageInput.value = '';
+                
+                addLoadingIndicator();
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 adjustTextareaHeight();
 
@@ -149,29 +127,53 @@
                 chatMessages.appendChild(messageDiv);
                 messageDiv.appendChild(thinkingDiv);
                 messageDiv.appendChild(responseDiv);
+
+                function stopAutoScroll() {
+                    if(autoScrollEnabled){
+                        const currentPosition = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+                        autoScrollEnabled = currentPosition <= 30;
+                    }
+                }
+                chatMessages.addEventListener('scroll', stopAutoScroll);
                 
                 previousEvent = async event => {
                     const {commands, text} = event.data;
-
                     if (commands === 'res-from-deepseek-go') {
+                        removeLoadingIndicator();
                         const thinkMatch = text.toString().match(/<think>([\s\S]*)/s) || null;
-                        
                         if (thinkMatch) {
                             addMessage(thinkMatch[1].trim(), thinkingDiv); // Render thinking message
                         }
                         else {
                             addMessage(text, responseDiv); // Render actual response
                         }
-                        // chatMessages.scrollTop = chatMessages.scrollHeight;
-                        // await simulateTyping(text);
+
+                        if (autoScrollEnabled){
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                        await simulateTyping(text);
                     }   
                 }
-
+                // removeLoadingIndicator();
                 window.addEventListener('message', previousEvent);
                 sendButton.disabled = false;
-                }
-            }  
+            }
+        }
             
+        function addLoadingIndicator() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.classList.add('loading');
+            loadingDiv.innerHTML = '<div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>';
+            chatMessages.appendChild(loadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeLoadingIndicator() {
+            const loadingDiv = chatMessages.querySelector('.loading');
+            if (loadingDiv) {
+                chatMessages.removeChild(loadingDiv);
+            }
+        }   
 
         function adjustTextareaHeight() {
             userMessageInput.style.height = 'auto';
@@ -192,6 +194,7 @@
 
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'c') {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
                 vscode.postMessage({ commands: 'abort' });
             }
         });
